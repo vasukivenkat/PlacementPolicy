@@ -6,12 +6,10 @@ namespace PolicyAPI.Concrete
 {
     public class EligibilityService : IEligibilityService
     {
-        public EligibilityResultDTO CheckEligibility(StudentDTO student, CompanyDTO company, PolicyConfigurationDTO policies, double currentPlacementPercentage)
+        public EligibilityReasonDTO CheckEligibility(StudentDTO student, CompanyDTO company, PolicyConfigurationDTO policies, double currentPlacementPercentage)
         {
-            var result = new EligibilityResultDTO
+            var result = new EligibilityReasonDTO
             {
-                StudentId = student.Id,
-                StudentName = student.Name,
                 CompanyId = company.Id,
                 CompanyName = company.Name,
                 IsEligible = true,
@@ -58,20 +56,91 @@ namespace PolicyAPI.Concrete
             return result;
 
         }
-
-        public List<EligibilityResultDTO> CheckBulkEligibility(List<StudentDTO> students, List<CompanyDTO> companies, PolicyConfigurationDTO policies, double currentPlacementPercentage)
+        
+        public EligibilityConsolidationDTO CheckBulkEligibility(List<StudentDTO> students, List<CompanyDTO> companies, PolicyConfigurationDTO policies, double currentPlacementPercentage)
         {
-            var results = new List<EligibilityResultDTO>();
+            var eligibilityResults = ProcessStudentBasedEligibility(students, companies, policies, currentPlacementPercentage);
+            var companyBasedResult = ProcessCompanyBasedResults(companies, students, eligibilityResults);
+
+            EligibilityConsolidationDTO EligibilityConsolidation = new EligibilityConsolidationDTO
+            {
+                EligibilityResults = eligibilityResults,
+                CompanyBasedResult = companyBasedResult
+            };
+
+            return EligibilityConsolidation;
+        }
+
+        private List<EligibilityResultDTO> ProcessStudentBasedEligibility(List<StudentDTO> students, List<CompanyDTO> companies, PolicyConfigurationDTO policies, double currentPlacementPercentage)
+        {
+            var eligibilityResults = new List<EligibilityResultDTO>(students.Count);
 
             foreach (var student in students)
             {
+                var eligibilityReasons = new List<EligibilityReasonDTO>(companies.Count); 
+                var eligibleCompaniesName = new List<string>();
+
                 foreach (var company in companies)
                 {
-                    results.Add(CheckEligibility(student, company, policies, currentPlacementPercentage));
+                    var reason = CheckEligibility(student, company, policies, currentPlacementPercentage);
+                    eligibilityReasons.Add(reason);
+
+                    if (reason.IsEligible)
+                        eligibleCompaniesName.Add(reason.CompanyName);
                 }
+
+                var result = new EligibilityResultDTO
+                {
+                    StudentId = student.Id,
+                    StudentName = student.Name,
+                    EligibilityReasonDTO = eligibilityReasons,
+                    EligibleCompaniesName = eligibleCompaniesName,
+                    EligibleCompaniesCount = eligibleCompaniesName.Count
+                };
+
+                eligibilityResults.Add(result);
             }
 
-            return results;
+            return eligibilityResults;
+        }
+
+        private List<CompanyBasedResultDTO> ProcessCompanyBasedResults(List<CompanyDTO> companies, List<StudentDTO> students, List<EligibilityResultDTO> eligibilityResults)
+        {
+            // Create lookup dictionary for O(1) access instead of nested loops
+            var studentEligibilityLookup = eligibilityResults
+                .SelectMany(result => result.EligibilityReasonDTO
+                    .Where(reason => reason.IsEligible)
+                    .Select(reason => new {
+                        CompanyId = reason.CompanyId,
+                        StudentName = result.StudentName
+                    }))
+                .GroupBy(x => x.CompanyId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.StudentName).ToList()
+                );
+
+            var companyBasedResult = new List<CompanyBasedResultDTO>(companies.Count); // Pre-allocate capacity
+
+            foreach (var company in companies)
+            {
+                var eligibleStudentNames = studentEligibilityLookup.ContainsKey(company.Id)
+                    ? studentEligibilityLookup[company.Id]
+                    : new List<string>();
+
+                var companyresult = new CompanyBasedResultDTO
+                {
+                    CompanyName = company.Name,
+                    TotalStudents = students.Count,
+                    EligibleStudents = eligibleStudentNames.Count,
+                    NotEligibleStudents = students.Count - eligibleStudentNames.Count,
+                    EligibleStudentsName = eligibleStudentNames
+                };
+
+                companyBasedResult.Add(companyresult);
+            }
+
+            return companyBasedResult;
         }
 
         public PlacementStatusDTO GetPlacementStats(List<StudentDTO> students)

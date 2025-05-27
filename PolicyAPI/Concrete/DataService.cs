@@ -42,15 +42,15 @@ namespace PolicyAPI.Concrete
         {
             return new List<CompanyDTO>
             {
-                //new Company { Id = 1, Name = "Google", SalaryOffered = 5500000, Category = "Product", IsHighPaying = true },
-                //new Company { Id = 2, Name = "Microsoft", SalaryOffered = 5000000, Category = "Product", IsHighPaying = true },
-                //new Company { Id = 3, Name = "Amazon", SalaryOffered = 4500000, Category = "Product", IsHighPaying = true },
-                new CompanyDTO { Id = 4, Name = "Apple", SalaryOffered = 6000000, Category = "Product", IsHighPaying = true }//,
-                //new Company { Id = 5, Name = "Meta", SalaryOffered = 5200000, Category = "Product", IsHighPaying = true },
-                //new Company { Id = 6, Name = "Netflix", SalaryOffered = 4800000, Category = "Product", IsHighPaying = true },
-                //new Company { Id = 7, Name = "Tesla", SalaryOffered = 4200000, Category = "Product", IsHighPaying = true },
-                //new Company { Id = 8, Name = "Uber", SalaryOffered = 3500000, Category = "Product", IsHighPaying = true },
-                //new Company { Id = 9, Name = "Flipkart", SalaryOffered = 2800000, Category = "Product", IsHighPaying = false}
+                new CompanyDTO { Id = 1, Name = "Google", SalaryOffered = 5500000, Category = "Product", IsHighPaying = true },
+                new CompanyDTO { Id = 2, Name = "Microsoft", SalaryOffered = 5000000, Category = "Product", IsHighPaying = true },
+                new CompanyDTO { Id = 3, Name = "Amazon", SalaryOffered = 4500000, Category = "Product", IsHighPaying = true },
+                new CompanyDTO { Id = 4, Name = "Apple", SalaryOffered = 6000000, Category = "Product", IsHighPaying = true },
+                new CompanyDTO { Id = 5, Name = "Meta", SalaryOffered = 5200000, Category = "Product", IsHighPaying = true },
+                new CompanyDTO { Id = 6, Name = "Netflix", SalaryOffered = 4800000, Category = "Product", IsHighPaying = true },
+                new CompanyDTO { Id = 7, Name = "Tesla", SalaryOffered = 4200000, Category = "Product", IsHighPaying = true },
+                new CompanyDTO { Id = 8, Name = "Uber", SalaryOffered = 3500000, Category = "Product", IsHighPaying = true },
+                new CompanyDTO { Id = 9, Name = "Flipkart", SalaryOffered = 2800000, Category = "Product", IsHighPaying = false}
             };
         }
 
